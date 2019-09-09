@@ -1,0 +1,22 @@
+version: "3.7"
+
+# Will Fantom
+
+services:
+
+  # Database
+  mariadb:
+    container_name: mariadb
+    restart: unless-stopped
+    image: linuxserver/mariadb
+    networks:
+      - default
+    ports:
+      - 3306:3306
+    volumes:
+      - ${BASE_DIR}/data:/config
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_RT_PASS}
