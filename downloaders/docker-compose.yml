@@ -29,7 +29,7 @@ services:
       - OPENVPN_PASSWORD=${VPNPASSWORD}
       - CREATE_TUN_DEVICE=true
       - ENABLE_UFW=true
-      - LOCAL_NETWORK=10.37.0.0/24
+      - LOCAL_NETWORK=${LOCAL_SUBNET}
       - PUID=${PUID}
       - PGID=${PGID}
       - TRANSMISSION_WEB_UI=combustion
