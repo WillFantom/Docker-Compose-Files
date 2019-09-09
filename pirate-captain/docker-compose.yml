@@ -16,7 +16,7 @@ services:
     volumes:
       - ${BASE_DIR}/organizr:/config
     environment:
-      - PUID=${PUID}
+      - PUID=${PUID_NR}
       - PGID=${PGID}
       - TZ=${TZ}
 
