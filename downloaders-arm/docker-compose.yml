@@ -1,0 +1,65 @@
+version: "3.7"
+
+# Will Fantom
+
+services:
+
+  # Torrent Downloader
+  transmission:
+    container_name: transmission
+    restart: unless-stopped
+    image: haugene/transmission-openvpn:latest-armhf
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - default
+    ports:
+      - 9000:9091
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${BASE_DIR}/transmission:/data
+      - ${COMPLETED_DOWNLOADS}:/downloads
+      - ${INCOMPLETE_DOWNLOADS}:/incomplete
+    environment:
+      - OPENVPN_PROVIDER=${VPNPROVIDER}
+      - OPENVPN_USERNAME=${VPNEMAIL}
+      - OPENVPN_PASSWORD=${VPNPASSWORD}
+      - CREATE_TUN_DEVICE=true
+      - ENABLE_UFW=true
+      - LOCAL_NETWORK=10.37.0.0/24
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TRANSMISSION_WEB_UI=combustion
+      - TRANSMISSION_DOWNLOAD_DIR=/downloads
+      - TRANSMISSION_INCOMPLETE_DIR=/incomplete
+      - TRANSMISSION_DOWNLOAD_QUEUE_ENABLED=true
+      - TRANSMISSION_DOWNLOAD_QUEUE_SIZE=5
+      - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
+      - TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true
+      - TRANSMISSION_RPC_PASSWORD=${TRANSMISSIONPASSWORD}
+      - TRANSMISSION_RPC_USERNAME=${TRANSMISSIONUSERNAME}
+      - TRANSMISSION_UMASK=002
+      - TRANSMISSION_RATIO_LIMIT=0.10
+      - TRANSMISSION_RATIO_LIMIT_ENABLED=true
+      - WEBPROXY_ENABLED=false
+
+  # Usenet 
+  sabnzbd:
+    container_name: sabnzbd
+    restart: unless-stopped
+    image: linuxserver/sabnzbd
+    networks:
+      - default
+    ports:
+      - 9001:8080
+    volumes:
+      - ${BASE_DIR}/sabnzbd:/config
+      - ${COMPLETED_DOWNLOADS}:/downloads
+      - ${INCOMPLETE_DOWNLOADS}:/incomplete
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
