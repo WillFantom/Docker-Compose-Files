@@ -59,6 +59,7 @@ services:
       - ${BASE_DIR}/sabnzbd:/config
       - ${COMPLETED_DOWNLOADS}:/downloads
       - ${INCOMPLETE_DOWNLOADS}:/incomplete
+      - ${NZBS}:/watched
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
