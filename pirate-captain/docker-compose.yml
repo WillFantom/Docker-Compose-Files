@@ -1,0 +1,71 @@
+version: "3.7"
+
+# Will Fantom
+
+services:
+
+  # Manage the media services
+  organizr:
+    container_name: organizr
+    restart: unless-stopped
+    image: linuxserver/organizr
+    networks:
+      - default
+    ports:
+      - 7000:80
+    volumes:
+      - ${BASE_DIR}/organizr:/config
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  # Get requests for plex content
+  ombi:
+    container_name: ombi
+    restart: unless-stopped
+    image: linuxserver/ombi
+    networks:
+      - default
+    ports:
+      - 7001:3579
+    volumes:
+      - ${BASE_DIR}/ombi:/config
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  # Search for NZBs
+  hydra:
+    container_name: hydra
+    restart: unless-stopped
+    image: linuxserver/hydra2
+    networks:
+      - default
+    ports:
+      - 7002:5076
+    volumes:
+      - ${BASE_DIR}/hydra:/config
+      - ${NZB_FILES}:/downloads
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  # Search for torrents
+  jackett:
+    container_name: jackett
+    restart: unless-stopped
+    image: linuxserver/jackett
+    networks:
+      - default
+    ports:
+      - 7003:9117
+    volumes:
+      - ${BASE_DIR}/jackett:/config
+      - ${TORRENT_FILES}:/downloads
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
