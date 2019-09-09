@@ -20,3 +20,15 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
       - MYSQL_ROOT_PASSWORD=${MYSQL_RT_PASS}
+
+  # Manage DB
+  pma:
+    container_name: pma
+    restart: unless-stopped
+    image: phpmyadmin/phpmyadmin
+    networks:
+      - default
+    ports:
+      - 7004:80
+    links:
+      - mariadb:db
