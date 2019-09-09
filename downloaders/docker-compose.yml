@@ -23,6 +23,7 @@ services:
       - ${BASE_DIR}/transmission:/data
       - ${COMPLETED_DOWNLOADS}:/downloads
       - ${INCOMPLETE_DOWNLOADS}:/incomplete
+      - ${TORRENTS}:/watch
     environment:
       - OPENVPN_PROVIDER=${VPNPROVIDER}
       - OPENVPN_USERNAME=${VPNEMAIL}
@@ -36,6 +37,8 @@ services:
       - TRANSMISSION_DOWNLOAD_DIR=/downloads
       - TRANSMISSION_INCOMPLETE_DIR=/incomplete
       - TRANSMISSION_DOWNLOAD_QUEUE_ENABLED=true
+      - TRANSMISSION_WATCH_DIR_ENABLED=true
+      - TRANSMISSION_WATCH_DIR=/watch
       - TRANSMISSION_DOWNLOAD_QUEUE_SIZE=5
       - OPENVPN_OPTS=--inactive 3600 --ping 10 --ping-exit 60
       - TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true
