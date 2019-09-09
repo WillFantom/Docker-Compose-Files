@@ -1,0 +1,52 @@
+version: "3.7"
+
+# Will Fantom
+
+services:
+  # Sonarr - TV Automation
+  sonarr:
+    container_name: sonarr
+    image: linuxserver/sonarr:preview
+    restart: unless-stopped
+    ports:
+      - 8000:8989
+    volumes:
+      - ${BASE_DIR}/sonarr:/config
+      - ${COMPLETED_DOWNLOADS}:/downloads
+      - ${MEDIA_DIR}/tv:/tv
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  # Radarr - Film Automation
+  radarr:
+    container_name: radarr
+    image: linuxserver/radarr:latest
+    restart: unless-stopped
+    ports:
+      - 8001:7878
+    volumes:
+      - ${BASE_DIR}/radarr:/config
+      - ${COMPLETED_DOWNLOADS}:/downloads
+      - ${MEDIA_DIR}/movies:/movies
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+  # Lidarr - Music Automation
+  lidarr:
+    container_name: lidarr
+    image: linuxserver/lidarr:latest
+    restart: unless-stopped
+    ports:
+      - 8002:8686
+    volumes:
+      - ${BASE_DIR}/lidarr:/config
+      - ${COMPLETED_DOWNLOADS}:/downloads
+      - ${MEDIA_DIR}/music:/music
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
