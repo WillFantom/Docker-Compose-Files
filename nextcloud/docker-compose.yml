@@ -1,0 +1,26 @@
+version: "3.7"
+
+# Will Fantom
+
+services:
+
+  # Nextcloud | Self-hosted dropbox like platform
+  nexcloud:
+    container_name: nextcloud
+    restart: unless-stopped
+    image: nexcloud:latest
+    networks:
+      - default
+    ports:
+      - 6500:80
+    volumes:
+      - ${BASE_DIR}/conf:/var/www/html
+      - ${BASE_DIR}/apps:/var/www/html/custom_apps
+      - ${CLOUD_DATA}:/var/www/html/data
+    environment:
+      - MYSQL_HOST=${DB_HOST}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWD}
+      - NEXTCLOUD_ADMIN_USER=${NC_AD_USER}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NC_AD_PASSWD}
