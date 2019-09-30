@@ -1,14 +1,13 @@
 version: "3.7"
 
-# Will Fantom
+# Secure Reverse Proxy
 
 services:
 
-  # Traefik | Secure reverse proxy
   traefik:
     container_name: traefik
+    image: traefik:v2.0.0
     restart: always
-    image: traefik:latest
     networks:
       - default
       - traefik-network
@@ -17,28 +16,46 @@ services:
       - 443:443
       - 80:80
     volumes:
+      - ${CERT_DIR}:/letsencrypt
+      - ${RULES_DIR}:/rules
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${BASE_DIR}/traefik:/etc/traefik
     environment:
-      - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
-      - CF_API_KEY=${CLOUDFLARE_API_KEY}
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_API_KEY=${CF_API_KEY}
+      - TRAEFIK_ACCESSLOG=true
+    command:
+      - "--api=true"
+      - "--api.dashboard=true"
+      - "--log.level=ERROR"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-network"
+      - "--providers.file.directory=/rules"
+      - "--providers.file.watch=true"
+      - "--providers.rest=true"
+      - "--providers.rest.insecure=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.cfdns.acme.dnschallenge=true"
+      - "--certificatesresolvers.cfdns.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.mydnschallenge.acme.email=${CF_API_EMAIL}"
+      - "--certificatesresolvers.cfdns.acme.storage=/letsencrypt/acme.json"
+      - "--metrics.prometheus.buckets=0.1,0.3,1.2,5.0"
+      - "--metrics.prometheus.entrypoint=traefik"
     labels:
       - traefik.enable=true
-      - traefik.backend=traefik
-      - traefik.frontend.rule=Host:traefik.${DOMAIN}
-      - traefik.port=8080
-      - traefik.docker.network=traefik-network
-      - traefik.frontend.headers.SSLRedirect=true
-      - traefik.frontend.headers.STSSeconds=315360000
-      - traefik.frontend.headers.browserXSSFilter=true
-      - traefik.frontend.headers.contentTypeNosniff=true
-      - traefik.frontend.headers.SSLHost=example.com
-      - traefik.frontend.headers.forceSTSHeader=true
-      - traefik.frontend.headers.STSIncludeSubdomains=true
-      - traefik.frontend.headers.STSPreload=true
-      - traefik.frontend.headers.frameDeny=true
-      - traefik.frontend.auth.basic.users=${TRAEFIK_UNAME}:${TRAEFIK_PASS}
-
+      - traefik.http.routers.traefik.entrypoints=web
+      - traefik.http.routers.traefik-sec.entrypoints=websecure
+      - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)
+      - traefik.http.routers.traefik-sec.rule=Host(`traefik.${DOMAIN}`)
+      - traefik.http.routers.traefik-sec.service=api@internal
+      - traefik.http.middlewares.tls-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.traefik.middlewares=tls-redirect
+      - traefik.http.middlewares.bauth.basicauth.users=${USERNAME}:${HASHEDPASS}
+      - traefik.http.routers.traefik-sec.middlewares=bauth
+      - traefik.http.routers.traefik-sec.tls=true
+      - traefik.http.routers.traefik-sec.tls.certresolver=cfdns
+      
 networks:
   traefik-network:
     external: true
