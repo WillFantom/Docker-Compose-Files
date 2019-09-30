@@ -1,0 +1,65 @@
+version: "3.7"
+
+# Will Fantom
+
+services:
+
+  grafana:
+    container_name: grafana
+    restart: always
+    image: grafana/grafana
+    networks:
+      - traefik-network
+      - default
+    volumes:
+      - ${GRAFANA_DATA}:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-clock-panel,grafana-simple-json-datasource
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.grafana.entrypoints=web
+      - traefik.http.routers.grafana-sec.entrypoints=websecure
+      - traefik.http.routers.grafana.rule=Host(`monitor.${DOMAIN}`)
+      - traefik.http.routers.grafana-sec.rule=Host(`monitor.${DOMAIN}`)
+      - traefik.http.services.grafana-sec.loadbalancer.server.port=3000
+      - traefik.http.middlewares.tls-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.grafana.middlewares=tls-redirect
+      - traefik.http.routers.grafana-sec.tls=true
+      - traefik.http.routers.grafana-sec.tls.certresolver=cfdns
+
+  prometheus:
+    container_name: prometheus
+    restart: always
+    image: prom/prometheus
+    networks:
+      - default
+      - traefik-network
+    ports:
+      - 9090:9090
+    volumes:
+      - ${PROM_CONF_DIR}:/etc/prometheus/
+      - ${PROM_DATA}:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'  
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prom.entrypoints=web
+      - traefik.http.routers.prom-sec.entrypoints=websecure
+      - traefik.http.routers.prom.rule=Host(`prom.${DOMAIN}`)
+      - traefik.http.routers.prom-sec.rule=Host(`prom.${DOMAIN}`)
+      - traefik.http.services.prom-sec.loadbalancer.server.port=9090
+      - traefik.http.middlewares.tls-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.prom.middlewares=tls-redirect
+      - traefik.http.routers.prom-sec.tls=true
+      - traefik.http.routers.prom-sec.tls.certresolver=cfdns
+
+
+networks:
+  traefik-network:
+    external: true
+  default:
+    driver: bridge
