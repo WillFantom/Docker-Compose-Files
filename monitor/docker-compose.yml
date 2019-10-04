@@ -52,8 +52,8 @@ services:
       - traefik.http.routers.prom.rule=Host(`prom.${DOMAIN}`)
       - traefik.http.routers.prom-sec.rule=Host(`prom.${DOMAIN}`)
       - traefik.http.services.prom-sec.loadbalancer.server.port=9090
-      - traefik.http.middlewares.tls-redirect.redirectscheme.scheme=https
       - traefik.http.routers.prom.middlewares=tls-redirect
+      - traefik.http.routers.prom-sec.middlewares=bauth
       - traefik.http.routers.prom-sec.tls=true
       - traefik.http.routers.prom-sec.tls.certresolver=cfdns
 
