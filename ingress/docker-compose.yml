@@ -33,7 +33,6 @@ services:
       - "--providers.file.directory=/rules"
       - "--providers.file.watch=true"
       - "--providers.rest=true"
-      - "--providers.rest.insecure=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.cfdns.acme.dnschallenge=true"
