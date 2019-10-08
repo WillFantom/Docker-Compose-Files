@@ -44,15 +44,26 @@ services:
       - "--metrics.prometheus.entrypoint=traefik"
     labels:
       - traefik.enable=true
+      
+      # Middlewares (can reuse them in other service labels)
+      - traefik.http.middlewares.tls-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.bauth.basicauth.users=${USERNAME}:${HASHEDPASS}
+      - traefik.http.middlewares.hsts.headers.sslForceHost=true
+      - traefik.http.middlewares.hsts.headers.stsSeconds=315360000
+      - traefik.http.middlewares.hsts.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.hsts.headers.stsPreload=true
+      - traefik.http.middlewares.xss.headers.browserXssFilter=true
+      - traefik.http.middlewares.frameDeny.headers.frameDeny=true
+      - traefik.http.middlewares.nosniff.headers.contentTypeNosniff=true
+      
+      # Traefik API Dash
       - traefik.http.routers.traefik.entrypoints=web
       - traefik.http.routers.traefik-sec.entrypoints=websecure
       - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)
+      - traefik.http.routers.traefik.middlewares=tls-redirect
       - traefik.http.routers.traefik-sec.rule=Host(`traefik.${DOMAIN}`)
       - traefik.http.routers.traefik-sec.service=api@internal
-      - traefik.http.middlewares.tls-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.traefik.middlewares=tls-redirect
-      - traefik.http.middlewares.bauth.basicauth.users=${USERNAME}:${HASHEDPASS}
-      - traefik.http.routers.traefik-sec.middlewares=bauth
+      - traefik.http.routers.traefik-sec.middlewares=hsts,bauth,xss,nosniff,frameDeny
       - traefik.http.routers.traefik-sec.tls=true
       - traefik.http.routers.traefik-sec.tls.certresolver=cfdns
       
@@ -61,3 +72,4 @@ networks:
     external: true
   default:
     driver: bridge
+
