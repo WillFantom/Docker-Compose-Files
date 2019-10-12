@@ -8,6 +8,9 @@ services:
     container_name: sonarr
     image: linuxserver/sonarr:preview
     restart: unless-stopped
+    networks:
+      - traefik-network
+      - default
     ports:
       - 8000:8989
     volumes:
@@ -18,12 +21,26 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sonarr.entrypoints=web
+      - traefik.http.routers.sonarr-sec.entrypoints=websecure
+      - traefik.http.routers.sonarr.rule=Host(`tv.${DOMAIN}`)
+      - traefik.http.routers.sonarr-sec.rule=Host(`tv.${DOMAIN}`)
+      - traefik.http.services.sonarr-sec.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr.middlewares=tls-redirect
+      - traefik.http.routers.sonarr-sec.middlewares=xss,nosniff,hsts,frameDeny
+      - traefik.http.routers.sonarr-sec.tls=true
+      - traefik.http.routers.sonarr-sec.tls.certresolver=cfdns
 
   # Radarr - Film Automation
   radarr:
     container_name: radarr
     image: linuxserver/radarr:latest
     restart: unless-stopped
+    networks:
+      - traefik-network
+      - default
     ports:
       - 8001:7878
     volumes:
@@ -34,12 +51,56 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.radarr.entrypoints=web
+      - traefik.http.routers.radarr-sec.entrypoints=websecure
+      - traefik.http.routers.radarr.rule=Host(`movies.${DOMAIN}`)
+      - traefik.http.routers.radarr-sec.rule=Host(`movies.${DOMAIN}`)
+      - traefik.http.services.radarr-sec.loadbalancer.server.port=7878
+      - traefik.http.routers.radarr.middlewares=tls-redirect
+      - traefik.http.routers.radarr-sec.middlewares=xss,nosniff,hsts,frameDeny
+      - traefik.http.routers.radarr-sec.tls=true
+      - traefik.http.routers.radarr-sec.tls.certresolver=cfdns
+
+  # Radarr 4K - 2nd Instance for alt downloads (e.g. 4k versions of movies)
+  radarr-4k:
+    container_name: radarr-4k
+    image: linuxserver/radarr:latest
+    restart: unless-stopped
+    networks:
+      - traefik-network
+      - default
+    ports:
+      - 8003:7878
+    volumes:
+      - ${BASE_DIR}/radarr-4k:/config
+      - ${COMPLETED_DOWNLOADS}:/downloads
+      - ${MEDIA_DIR}/movies-uhd:/movies
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.radarr4k.entrypoints=web
+      - traefik.http.routers.radarr4k-sec.entrypoints=websecure
+      - traefik.http.routers.radarr4k.rule=Host(`uhdmovies.${DOMAIN}`)
+      - traefik.http.routers.radarr4k-sec.rule=Host(`uhdmovies.${DOMAIN}`)
+      - traefik.http.services.radarr4k-sec.loadbalancer.server.port=7878
+      - traefik.http.routers.radarr4k.middlewares=tls-redirect
+      - traefik.http.routers.radarr4k-sec.middlewares=xss,nosniff,hsts,frameDeny
+      - traefik.http.routers.radarr4k-sec.tls=true
+      - traefik.http.routers.radarr4k-sec.tls.certresolver=cfdns
 
   # Lidarr - Music Automation
   lidarr:
     container_name: lidarr
     image: linuxserver/lidarr:latest
     restart: unless-stopped
+    networks:
+      - traefik-network
+      - default
     ports:
       - 8002:8686
     volumes:
@@ -50,3 +111,19 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.lidarr.entrypoints=web
+      - traefik.http.routers.lidarr-sec.entrypoints=websecure
+      - traefik.http.routers.lidarr.rule=Host(`music.${DOMAIN}`)
+      - traefik.http.routers.lidarr-sec.rule=Host(`music.${DOMAIN}`)
+      - traefik.http.services.lidarr-sec.loadbalancer.server.port=8686
+      - traefik.http.routers.lidarr.middlewares=tls-redirect
+      - traefik.http.routers.lidarr-sec.tls=true
+      - traefik.http.routers.lidarr-sec.tls.certresolver=cfdns
+
+networks:
+  traefik-network:
+    external: true
+  default:
+    driver: bridge
